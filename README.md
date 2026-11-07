@@ -1,81 +1,71 @@
-# Khawaja Safiullah
+### Hi, I'm Khawaja Safiullah
 
-**I build systems that run without me — agentic AI loops, scraping pipelines, and the deployment infrastructure that keeps them honest.**
+I build the unglamorous half of AI systems: the part that measures whether it works, stops it when it doesn't, and explains why afterwards.
 
-Most AI demos are a prompt and a chat box. The work I care about is what happens on the ninety-ninth run: when the model times out, when a scraper gets blocked, when a deploy ships stale HTML. That is where software either holds up or doesn't.
-
----
-
-## What I'm working on
-
-**Closed-loop agentic systems.** Give an agent a goal and a rubric, not a script, then build the parts that make that safe: deterministic fallbacks when the model is unavailable, an audit trail for every autonomous decision, and guard rails that stop a bad rubric from producing infinite retries.
-
-**The unglamorous half.** TLS expiry, redirect chains, cache policy, robots parsing to spec. A surprising share of production incidents live in the twenty lines nobody wrote a test for.
+Ten small, dependency-free tools and two applications. Every repo has tests, CI that passes for real reasons, and a README that admits what it doesn't do.
 
 ---
 
-## Featured work
+## The AI reliability stack
 
-### [agencyops](https://github.com/aiplusplus360/agencyops)
-A closed-loop AI operations engine for agencies. The owner types what they want; it becomes a 90-day roadmap, gets routed to the right specialist, graded against a rubric, and the plan self-heals when something slips.
+These fit together. Each one covers a failure mode the others don't.
 
-`Node` · `Express` · `PostgreSQL` · `Prisma` · `Socket.IO` · `React` · `LLM`
+| Repo | The failure it prevents | Why it's hard |
+|---|---|---|
+| [`llm-router`](https://github.com/aiplusplus360/llm-router) | Overpaying 60× for a task a cheap model handles, or underpaying and silently degrading quality | Explaining the decision, not just making it |
+| [`tool-guard`](https://github.com/aiplusplus360/tool-guard) | An agent looping forever and turning a 2¢ job into a $400 bill | Enforcing limits at the only entry point, so they can't be bypassed |
+| [`structured-output`](https://github.com/aiplusplus360/structured-output) | Paying for a second generation to fix a code fence | Repairing locally first, without corrupting valid data |
+| [`rag-eval`](https://github.com/aiplusplus360/rag-eval) | An improving average hiding a query that broke | Per-query regressions, because means lie |
+| [`prompt-regression`](https://github.com/aiplusplus360/prompt-regression) | A prompt edit that changes behaviour while tests stay green | Layered comparison: rules outrank similarity |
+| [`agent-trace`](https://github.com/aiplusplus360/agent-trace) | Not knowing where the 40 seconds and 9 cents went | Tolerating broken traces, because crashes are what you investigate |
+| [`mcp-server-kit`](https://github.com/aiplusplus360/mcp-server-kit) | Hand-written JSON Schema drifting from the function it describes | Generating it from type hints, and getting JSON-RPC lifecycle right |
 
-*34 models, 30 AI services, 30 REST modules. Every AI path has a deterministic fallback, so the loop closes even with no API key.*
-
-### [devops-site](https://github.com/aiplusplus360/devops-site)
-A server-rendered marketing site with 44 routes generated from JSON content, an Express contact API, and a CI/CD pipeline that smoke-tests production after every deploy.
-
-`React 19` · `SSR` · `Vite` · `Express` · `GitHub Actions`
-
-*One route table shared by client and server, so the server can never disagree with the browser about which URLs exist.*
-
-### [prompt-regression](https://github.com/aiplusplus360/prompt-regression)
-Catch prompt regressions in CI. A prompt is a dependency — this records expected behaviour and fails the build when output drifts.
-
-`Python` · `Zero dependencies` · `44 tests` · `CI on 3.9 / 3.11 / 3.13`
-
-*The layered comparison is the point: a perfect similarity score can't rescue an output that dropped required content.*
-
-### [deploy-preflight](https://github.com/aiplusplus360/deploy-preflight)
-Pre-deploy checks for any URL: TLS expiry, redirect chains, security headers, cache policy, robots and sitemap.
-
-`Python` · `Zero dependencies` · `38 tests`
-
-*Parses `robots.txt` to RFC 9309 — group-scoped and longest-match — because grepping for `Disallow: /` reports a false positive on half the internet.*
-
----
-
-## How I work
-
-**Fallbacks over assumptions.** If a feature only works when a vendor is up, it's a bug. Every AI path I ship has a deterministic path behind it.
-
-**Test the rules, not the wording.** Model output is prose; asserting on bytes fails on noise until someone deletes the test. Assert on required content, forbidden content, and *then* similarity — in that order.
-
-**Make failure legible.** An unreachable host is a failure, not a skip. A bad certificate says *"certificate verification failed"*, not *"network error"*. A red deploy says which assertion failed.
-
-**Preserve the audit trail.** When software makes a decision on its own, the reasoning, the model, and the cost get recorded. "The AI did it" is not an answer anyone can ship on.
-
----
-
-## Stack
-
-```text
-Languages    TypeScript · Python · JavaScript · SQL · Rust (a little)
-Backend      Node, Express, Prisma, PostgreSQL, FastAPI-style pipelines
-Frontend     React, Vite, Tailwind, vanilla TS when it's faster
-AI           LLM orchestration, RAG, embeddings, prompt evaluation, agents
-Infra        Docker, nginx, systemd, GitHub Actions, VPS deploys, TLS
-Data         Scraping, enrichment, ETL, Postgres modelling
+```console
+$ llm-router route "hi there"          → nano-1     $0.00008
+$ llm-router route "implement a ring buffer" → large-1  $0.00483
 ```
 
+```console
+$ rag-eval demo
+recall  0.667 → 1.000   +0.333     ← every aggregate improved
+1 regression(s): export my data  1.00 → 0.50
+VERDICT: mixed (aggregate moved, but some queries regressed)
+```
+
+## DevOps and deployment
+
+| Repo | What it does |
+|---|---|
+| [`deploy-preflight`](https://github.com/aiplusplus360/deploy-preflight) | TLS expiry, redirect chains, security headers, caching, robots and sitemap — before you ship |
+| [`devops-site`](https://github.com/aiplusplus360/devops-site) | React 19 SSR marketing site, 40 JSON-driven service pages, CI/CD with production smoke tests |
+
+## Applications
+
+| Repo | What it is |
+|---|---|
+| [`agencyops`](https://github.com/aiplusplus360/agencyops) | An AI ops engine that plans, routes, grades and self-heals agency work — with a deterministic fallback for every AI decision and an audit log that proves it |
+
 ---
 
-## Reach me
+## How these are built
 
-Open to **AI engineering, automation, and full-stack roles** where the work is systems, not slideware.
+Every one of the eleven repos follows the same rules:
 
-[![Email](https://img.shields.io/badge/Email-khawajasafiullah18%40gmail.com-EA4335?style=flat-square&logo=gmail&logoColor=white)](mailto:khawajasafiullah18@gmail.com)
-[![GitHub](https://img.shields.io/badge/GitHub-aiplusplus360-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/aiplusplus360)
+- **No runtime dependencies.** A debugging tool you can't `pip install` on an air-gapped box is a tool you won't use during an incident.
+- **Tests that assert something.** Metrics are verified against hand-computed values, not against the implementation's own output.
+- **CI that has failed at least once.** Each workflow was run locally first; the ones that broke broke for real reasons (a missing `pyproject.toml`, a cost rollup that reported `$0.00`), and the fix is in the history.
+- **READMEs that name the limitation.** Timeouts are cooperative. The validator doesn't support `$ref`. Token counts are `len(text) // 4`. Pretending otherwise is how documentation gets someone paged at 2am.
 
-<sub>Every repository here is built and maintained by me. If you're evaluating my work, the commit history is the best place to start.</sub>
+## Things I care about
+
+**A metric that hides the tail is worse than no metric.** `recall@10 = 0.95` and `p95 recall = 0.0` are both true at the same time. Only one of them is what a user experiences.
+
+**A limit that can be bypassed isn't a limit.** Instructions in a prompt are suggestions. Checks before every call are limits.
+
+**Expected failures are data, not errors.** A tool that says "no" should return something the model can read — not a transport error that triggers a retry storm.
+
+**Explain the decision.** "Why did this go to the cheap model?" is the first question asked when quality drops, and it needs an answer better than "the heuristic said so."
+
+---
+
+<sub>Python · TypeScript · Node · Postgres · React · GitHub Actions</sub>
